@@ -9,9 +9,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from datetime import datetime
 load_dotenv()
-#USER_CHAT_ID=128965698
-#BOT_TOKEN='2108873327:AAFf2tmcD4T28fl9x_-9JeSfKnzdGb33aqg'
-#CHROMEDRIVER_PATH="./chromedriver"
+
 
 def send_message(bot, text):
     bot.send_message(chat_id=user_chat_id, text=text)
