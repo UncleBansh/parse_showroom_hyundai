@@ -4,35 +4,60 @@ import time
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 import os
-
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from datetime import datetime
 load_dotenv()
-
+#USER_CHAT_ID=128965698
+#BOT_TOKEN='2108873327:AAFf2tmcD4T28fl9x_-9JeSfKnzdGb33aqg'
+#CHROMEDRIVER_PATH="./chromedriver"
 
 def send_message(bot, text):
     bot.send_message(chat_id=user_chat_id, text=text)
 
+user_chat_id = os.environ['USER_CHAT_ID']
+token = os.environ['BOT_TOKEN']
+CarIsFind = False
 
-user_chat_id = os.getenv('USER_CHAT_ID')
-token = os.getenv('BOT_TOKEN')
+# datetime object containing current date and time
+
 bot = Bot(token=token)
 bot.send_message(chat_id=user_chat_id, text='bot is working')
 while True:
+    CarIsFind = False
+    now = datetime.now()
+    dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
     chrome_options = webdriver.ChromeOptions()
-    chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+    chrome_options.binary_location = '/usr/bin/google-chrome'
     chrome_options.add_argument('--headless')
+    chrome_options.add_argument('window-size=1920,1080')
     browser = webdriver.Chrome(
-        executable_path=os.environ.get("CHROMEDRIVER_PATH"),
-        chrome_options=chrome_options)
-    browser.get(
-        'https://showroom.hyundai.ru/')
+        executable_path="./chromedriver",
+        options=chrome_options)
+    browser.get('https://showroom.hyundai.ru/')
+    element = WebDriverWait(browser, 20).until(EC.visibility_of_element_located((By.ID, "cars-all")))
+    browser.save_screenshot("screenshot.png")
     soup = BeautifulSoup(browser.page_source, 'lxml')
     cars = soup.find_all(class_='car-item__wrap')
     for car in cars:
         car_brand = car.find(class_='text-uppercase').text
         car_price = car.find(class_='car-item__price-top').text
         car_engine = car.find_all(class_='mt-8')[1].find(class_='title').text
-        text = f'''Автомобиль - Hyundai {car_brand}\nЦена - {car_price}\nДвигатель - {car_engine}'''
-        if car_brand == 'Новая ELANTRA' or car_brand == 'Tucson':
+        car_count = car.find_all(class_='text-sm')[3].text
+        #car_image = car.find_all(class_='car-item__img asd-bg-fit')
+        #print(car_image)
+        text = f'''Автомобиль - Hyundai {car_brand}\nЦена - {car_price}\nДвигатель - {car_engine}\n{car_count}\nhttps://showroom.hyundai.ru/'''
+        if "TUCSON" in car_brand  or "CRETA" in car_brand or "SOLARIS" in car_brand or "SONATA" in car_brand  or "ELANTRA" in car_brand:
             send_message(bot, text=text)
+            bot.send_message(chat_id=242568032, text=text)
+            browser.save_screenshot("screenshot2.png")
+            print(dt_string,': шото нашлося')
+            CarIsFind = True
+    
+    if CarIsFind == False:
+        print(dt_string,': ничаго нету опять')
+   
     browser.quit()
-    time.sleep(80)
+    time.sleep(1)
+
